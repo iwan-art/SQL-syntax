@@ -1,0 +1,112 @@
+SELECT *
+FROM `my-first-project-329611.mydata.marketing_data`
+
+SELECT COUNT(*) AS jumlah_baris
+FROM `my-first-project-329611.mydata.marketing_data`
+
+
+1. Daily user marketing reach
+SELECT 
+ date_served,
+ COUNT (DISTINCT user_id) as jumlah_user
+FROM `my-first-project-329611.mydata.marketing_data`
+WHERE date_served IS NOT NULL # pengecualian null pada date_served
+GROUP BY date_served
+ORDER BY 1 # date_served
+
+
+2. Marketing reach by channel
+SELECT
+ marketing_channel,
+ COUNT (DISTINCT user_id) as jumlah_user
+FROM `my-first-project-329611.mydata.marketing_data`
+WHERE date_served IS NOT NULL # pengecualian null pada date_served
+GROUP BY marketing_channel
+ORDER BY 2 DESC # jumlah_user paling banyak
+
+3. Conversion rate
+SELECT 
+ COUNT (DISTINCT user_id) AS total_user,
+ COUNT (DISTINCT IF(converted is true, user_id, NULL)) AS subscribers,
+ ROUND (100 * (COUNT (DISTINCT IF(converted is true, user_id, NULL)) / COUNT (DISTINCT user_id)),2)  AS conversion_rate 
+FROM `my-first-project-329611.mydata.marketing_data`
+WHERE date_served IS NOT NULL # pengecualian null pada date_served
+
+4. Conversion rate per day
+SELECT
+ date_served,
+ COUNT (DISTINCT user_id) AS total_user,
+ COUNT (DISTINCT IF(converted is true, user_id, NULL)) AS subscribers, # (filter, apa yg ingin di hitung, NULL)
+ ROUND (100 * (COUNT (DISTINCT IF(converted is true, user_id, NULL)) / COUNT (DISTINCT user_id)),2)  AS conversion_rate 
+FROM `my-first-project-329611.mydata.marketing_data`
+WHERE date_served IS NOT NULL # pengecualian null pada date_served
+GROUP BY 1 # date_served
+ORDER BY 1 # date_served
+
+5. Conversion rate per marketing channel
+SELECT
+ marketing_channel,
+ COUNT (DISTINCT user_id) AS total_user,
+ COUNT (DISTINCT IF(converted is true, user_id, NULL)) AS subscribers,
+ ROUND (100 * (COUNT (DISTINCT IF(converted is true, user_id, NULL)) / COUNT (DISTINCT user_id)),2)  AS conversion_rate 
+FROM `my-first-project-329611.mydata.marketing_data`
+WHERE date_served IS NOT NULL # pengecualian null pada date_served
+GROUP BY 1 # marketing_channel
+ORDER BY 4 DESC # conversion_rate
+
+6. Conversion rate per language displayed
+SELECT
+ language_displayed,
+ COUNT (DISTINCT user_id) AS total_user,
+ COUNT (DISTINCT IF(converted is true, user_id, NULL)) AS subscribers,
+ ROUND (100 * (COUNT (DISTINCT IF(converted is true, user_id, NULL)) / COUNT (DISTINCT user_id)),2)  AS conversion_rate 
+FROM `my-first-project-329611.mydata.marketing_data`
+WHERE date_served IS NOT NULL # pengecualian null pada date_served
+GROUP BY 1 # language_displayed
+ORDER BY 4 DESC # conversion_rate
+
+7. Conv rate per channel each day
+SELECT
+ date_served,
+ marketing_channel,
+ COUNT(DISTINCT user_id) AS user,
+ COUNT(DISTINCT IF(converted IS true, user_id, NULL)) AS subscribers,
+ ROUND (100 * COUNT(DISTINCT IF(converted IS true, user_id, NULL)) / COUNT(DISTINCT user_id),2) AS conversion_rate 
+FROM `my-first-project-329611.mydata.marketing_data`
+WHERE date_served IS NOT NULL
+GROUP BY 1,2
+ORDER BY 1
+
+8.
+SELECT
+ date_served,
+ language_displayed,
+ COUNT(DISTINCT user_id) AS user,
+ COUNT(DISTINCT IF(converted IS true, user_id, NULL)) AS subscribers,
+ ROUND (100 * COUNT(DISTINCT IF(converted IS true, user_id, NULL)) / COUNT(DISTINCT user_id),2) AS conversion_rate 
+FROM `my-first-project-329611.mydata.marketing_data`
+WHERE date_served IS NOT NULL AND marketing_channel = "House Ads"
+GROUP BY 1,2
+ORDER BY 1,2
+
+9. Correct language each day for House Ads
+WITH agg AS (
+SELECT 
+ date_served,
+ is_correct_lang,
+ count(*) AS cnt
+FROM `my-first-project-329611.mydata.marketing_data`
+WHERE marketing_channel = 'House Ads' AND date_Served IS NOT NULL
+GROUP BY 1,2
+ORDER BY 1,2),
+final AS (
+SELECT
+ date_served,
+ max(CASE WHEN is_correct_lang IS true THEN cnt END) AS Benar,
+ max(CASE WHEN is_correct_lang IS false THEN cnt END) AS Salah
+FROM agg
+GROUP BY 1
+ORDER BY 1)
+SELECT * FROM final
+
+
